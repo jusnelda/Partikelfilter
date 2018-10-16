@@ -79,22 +79,39 @@ save('data.mat', 'data');
 %% Occupancy Grid > Map Creation(i)
 % Grundriss
 figure(3)
-plot(vorgabe(:,1), vorgabe(:,2), '.');
+plot(vorgabe(:,1), vorgabe(:,2), '.k');
 title('Grundriss Vorgabe')
 
 % GPS
 figure(4)
 plot(GPS.GPS1(:,1),GPS.GPS1(:,2),'.k');
 hold on
-plot(GPS.GPS2(:,1),GPS.GPS2(:,2),'.y');
+plot(GPS.GPS2(:,1),GPS.GPS2(:,2),'.k');
 hold on
-plot(GPS.GPS3(:,1),GPS.GPS3(:,2),'.c');
+plot(GPS.GPS3(:,1),GPS.GPS3(:,2),'.k');
 hold on
-plot(GPS.GPS4(:,1),GPS.GPS4(:,2),'.r');
+plot(GPS.GPS4(:,1),GPS.GPS4(:,2),'.k');
 hold on
-plot(GPS.GPS5(:,1),GPS.GPS5(:,2),'.b');
+plot(GPS.GPS5(:,1),GPS.GPS5(:,2),'.k');
 hold on
-plot(GPS.GPS6(:,1),GPS.GPS6(:,2),'.g');
+plot(GPS.GPS6(:,1),GPS.GPS6(:,2),'.k');
 hold on
 %legend('schnitt 1','schnitt 2', 'schnitt 3','schnitt 4','schnitt 5','schnitt 6')
 title('GPS')
+axis equal
+
+%%
+clc
+f = openfig('GPS_all.fig');
+H = findobj(f,'type', 'line')
+x = get(H,'xdata');
+y = get(H,'ydata');
+close all
+plot([x{:,:}],[y{:,:}],'.b');
+axis equal
+
+
+
+
+
+

@@ -1,3 +1,4 @@
+%% eine woche frueher als 2018/10/16
 %% INIT
 
 clear all;
@@ -178,3 +179,63 @@ hold on
 plot(GPS6(:,1),GPS6(:,2),'.g');
 hold on
 legend('schnitt 1','schnitt 2', 'schnitt 3','schnitt 4','schnitt 5','schnitt 6')
+
+%% 2018/10/16
+f = openfig('GPS_all.fig');
+H = findobj(f,'type', 'line')
+x = get(H,'xdata');
+y = get(H,'ydata');
+% close all
+% plot([x{:,:}],[y{:,:}],'.b');
+% axis equal
+
+%% aus 3D Punktwolke floorplan erstellen ...
+
+% load Data
+% floorplan = load('HM_Karlstrasse_F8100_OG3_mod.map-1.txt');
+% 
+% 
+% 
+% floorplan(:,3) = 0;
+% % Daten anzeigen
+% for i = 1: length(floorplan)
+%     floorplan(i,1) = floorplan(i,1)/1000;
+%     floorplan(i,2) = floorplan(i,2)/1000;
+% end
+% 
+% pcshow([floorplan(:,1), floorplan(:,2), floorplan(:,3)]);
+% title('Occupancy Grid from Pointcloud');
+% grid off;
+% xlabel('X [meters]');
+% ylabel('Y [meters]');
+% view(2);
+% hold on
+% 
+% % floorplan um min verschieben
+% floorplan(:,1) = -min(floorplan(:,1)) + floorplan(:,1);
+% floorplan(:,2) = -min(floorplan(:,2)) + floorplan(:,2);
+% 
+% % grid size abfragen
+% max_x = max(floorplan(:,1));
+% min_x = min(floorplan(:,1));
+% max_y = max(floorplan(:,2));
+% min_y = min(floorplan(:,2));
+% 
+% % Definition des Occupancy-Grids
+% map = robotics.BinaryOccupancyGrid((round(max_x)+1),(round(max_y)+1), 5);
+% 
+% % projektion auf xy coordinaten
+% XY = floorplan(:,1:2);
+% 
+% % for i=1 : 100 %length(XY)
+% %xy = XY(i,:);
+% %setOccupancy(map,xy, 1);
+% %show(map);
+% % end
+% % occ grid erstellen
+% setOccupancy(map, XY, ones(length(XY),1));
+% %inflate(map,0.2)
+% figure(2);
+% show(map);
+
+
