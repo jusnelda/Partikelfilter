@@ -237,5 +237,31 @@ y = get(H,'ydata');
 % %inflate(map,0.2)
 % figure(2);
 % show(map);
-
+%% 20181023
+% Pruefen ob Punkte valide auf der Karte sind
+% index = 1;
+% for i = 1 : length(particles)
+    %particles(i,1:2) = world2grid(bin_occ_grid,particles(i,1:2));
+%     walls_world = grid2world(bin_occ_grid, walls(:,1:2));
+%     in = inpolygon(particles(i,1), particles(i,2), walls_world(:,1), walls_world(:,2));
+%     if (checkOccupancy(occ_grid,particles(i,1:2))) == 0
+%        valid_particles(i,:) = grid2world(bin_occ_grid, particles(i,1:2));
+%        valid_particles(index,:) = particles(i,:);
+%        index = index + 1;
+%     end
+% end
+%save('valid_particles', 'valid_particles')
+%% Pruefen ob Punkte valide auf der Karte sind
+% Testpunkte
+% point = [474,998]; % out
+% point = [534,789]; % in
+% point = [300,1207]; % in
+% points = robotPoses(:,1:2);
+% for i = 1 : length(points)
+%     points(i,1:2) = world2grid(bin_occ_grid,robotPoses(i,1:2));
+%     in = inpolygon(points(i,1), points(i,2), walls(:,1), walls(:,2));
+%     if (getOccupancy(bin_occ_grid,points(i,:),'grid')) == 1
+%         in = false;
+%     end
+% end
 

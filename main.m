@@ -5,11 +5,11 @@ clear all;
 tic
 % Import Image
 %filepath = fullfile('\\R311-IMAC25\WS2017_PrjNav_Data\3_Gruppe\HM_Karlstrasse_F8100_OG3_mod.png');
-% filepath = fullfile('C:\Users\Sysadmin\Documents\Partikelfilter Navi App\Partikelfilter/GPS_all_filled.png');
-filepath = fullfile('D:\Partikelfilter\Partikelfilter/GPS_all_filled.png');
+% filepath = fullfile('C:\Users\Sysadmin\Documents\Partikelfilter Navi App\Partikelfilter/GPS_all_black.png');
+%filepath = fullfile('D:\Partikelfilter\Partikelfilter/GPS_all_filled.png');
 % Jussi stick
-filepath = fullfile('/Volumes/NO NAME/7.Semester/Partikelfilter20181023/Partikelfilter/GPS_all_black.png');
-% filepath = fullfile('D:\Partikelfilter\Partikelfilter/GPS_all_black.png');
+%filepath = fullfile('/Volumes/NO NAME/7.Semester/Partikelfilter20181023/Partikelfilter/GPS_all_black.png');
+filepath = fullfile('D:\Partikelfilter\Partikelfilter/Bilder/GPS_all_black.png');
 load('walls_black')
 image = imread(filepath);
 
@@ -32,9 +32,11 @@ robotPoses(:,3) = pi/2;
 figure(1)
 show(occ_grid);
 q_range = randn(1) * 0.8;
-q_angle = randn(1) * 0.5;
+q_angle = randn(1) * 0.05;
 maxrange = 6 + q_range;
-angles = [pi/16,pi/8,pi/4,pi/3,-pi/3,-pi/4,-pi/8,-pi/16];
+%angles = [pi/16,pi/8,pi/4,pi/3,-pi/3,-pi/4,-pi/8,-pi/16];
+% angles = -pi/6:0.1047:pi/6;
+angles = [-0.5236,-0.4189,-0.3142,-0.2095,-0.1048,0.1046,0.2093,0.3140,0.4187,0.5234];
 angles = angles + q_angle;
 %robotPose = [207,138,pi/2];
 for k = 1 : length(robotPoses)
@@ -77,11 +79,12 @@ end
 %% Init Partikel
 % load('walls_black.mat')
 tic
-N = 10000;
-particles = zeros(N,4);
-particles(:,4) = 1/N;
-particles_resampled = zeros(N,4);
-particles_resampled(:,4) = 1/N;
+N = 5000;
+particles = zeros(N,5);
+% y bekommt spaeter die Hoehe der Kinect ueber dem Boden
+% particles(:,3) = ?
+particles(:,5) = 1/N;
+
 for i = 1 : N
     particles(i,1:2) = gen_random_particle([175,165], [24,200]);
     out_of_map = checkOccupancy(occ_grid, particles(i,1:2));
@@ -89,40 +92,44 @@ for i = 1 : N
         particles(i,1:2) = gen_random_particle([175,165], [24,200]);
         out_of_map = checkOccupancy(occ_grid, particles(i,1:2));
     end
-    particles(i,3) = rand(1) * pi/18;
+    particles(i,4) = rand(1) * pi/18;
 end
-% Pruefen ob Punkte valide auf der Karte sind
-% index = 1;
-% for i = 1 : length(particles)
-    %particles(i,1:2) = world2grid(bin_occ_grid,particles(i,1:2));
-%     walls_world = grid2world(bin_occ_grid, walls(:,1:2));
-%     in = inpolygon(particles(i,1), particles(i,2), walls_world(:,1), walls_world(:,2));
-%     if (checkOccupancy(occ_grid,particles(i,1:2))) == 0
-%        valid_particles(i,:) = grid2world(bin_occ_grid, particles(i,1:2));
-%        valid_particles(index,:) = particles(i,:);
-%        index = index + 1;
-%     end
-% end
-%save('valid_particles', 'valid_particles')
-sum_part = length(particles);
-% part_plot = plot(valid_particles(:,1), valid_particles(:,2), '.r');
-% hold on
-plot(particles(:,1), particles(:,2), '.r')
-toc
-%% Pruefen ob Punkte valide auf der Karte sind
-% Testpunkte
-% point = [474,998]; % out
-% point = [534,789]; % in
-% point = [300,1207]; % in
-% points = robotPoses(:,1:2);
-% for i = 1 : length(points)
-%     points(i,1:2) = world2grid(bin_occ_grid,robotPoses(i,1:2));
-%     in = inpolygon(points(i,1), points(i,2), walls(:,1), walls(:,2));
-%     if (getOccupancy(bin_occ_grid,points(i,:),'grid')) == 1
-%         in = false;
-%     end
-% end
+% Switch Spalte 2 mit 3 => x | y | z
+z = particles(:,2);
+y = particles(:,3);
+particles(:,2) = y;
+particles(:,3) = z;
 
+% Plot x und z 
+plot(particles(:,1), particles(:,3), '.r')
+
+
+part_struct.x = particles(:,1);
+part_struct.y = particles(:,2);
+part_struct.z = particles(:,3);
+part_struct.orientation = particles(:,4);
+part_struct.weights = particles(:,5);
+% Partikel berechnen ihre Distanz zur Wand
+distances = {'d1'; 'd2'; 'd3'; 'd4'; 'd5'; 'd6'; 'd7'; 'd8'; 'd9'; 'd10'};
+for k = 1 : N
+
+    robot_pose = [part_struct.x(k), part_struct.z(k), part_struct.orientation(k)];
+    intersectionPts = rayIntersection(occ_grid,robot_pose,angles,maxrange,0.7);
+    for i = 1 : length(intersectionPts)
+        if isnan(intsectionPts(i,1))
+            % Abstand zur Wand ist immer gleich, deswegen ist die Hoehe (y) egal
+            part_struct.(distances{i}) = sqrt( (intersectionPts(i,1) - part_struct.x(k) )^2 ...
+                                             + (intersectionPts(i,2) - part_struct.z(k) )^2 );
+        else
+            part_struct.(distances{i}) = 0;
+        end
+    end
+end
+
+toc
+%% Partikelfilter
+load('ROI');
+partikelfilter(part_struct, ROI);
 
 
 

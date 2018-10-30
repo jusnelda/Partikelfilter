@@ -51,7 +51,8 @@ index = 1;
 tic
 for i = 1:pc.Count
    point(i,:) = pc.Location(i,:);
-   if (point(i,2) >= (-square) && point(i,2) <= square) && (point(i,1) >= (-square) && point(i,1) <= square)
+   % Nach Y-Hoehe filtern
+   if (point(i,2) >= (-square) && point(i,2) <= square) %&& (point(i,1) >= (-square) && point(i,1) <= square)
        roi(index,:) = pc.Location(i,:);
        index = index + 1;
    end
@@ -68,13 +69,23 @@ plot(point(:,1), point(:,3),'.')
 title('Profillinie gesamt')
 grid on
 subplot(2,1,2)
+% Plot Draufsicht mit x und z
 plot(roi(:,1), roi(:,3),'.r')
 title('Profillinie ROI 20cm^2')
 grid on
 
+% Polarkoordinaten berechnen fuer roi
+for i = 1 : length(roi)
+   % Strecke von (0,0,0) 3D
+   roi(i,4) = sqrt( (roi(i,1))^2 + (roi(i,2))^2 + (roi(i,3))^2 );
+   % Winkel zu (0,0) 2D
+   roi(i,5) = atan2( roi(i,3),roi(i,1) );
+end
+figure(3)
+polarplot(roi(:,5), roi(:,4))
 % ROI als .mat abspeichern mit Zeitstempel
-data = struct('time', datestr(now), 'roi', roi);
-save('data.mat', 'data');
+ROI = struct('time', datestr(now), 'x', roi(:,1), 'y', roi(:,2), 'z', roi(:,3), 'dist', roi(:,4), 'angle', roi(:,5));
+save('ROI.mat', 'ROI');
 
 %% Occupancy Grid > Map Creation(i)
 % Grundriss
