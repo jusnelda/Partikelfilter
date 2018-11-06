@@ -1,8 +1,6 @@
-function partikelfilter(particles, ROI)
+function [resampled_struct] = partikelfilter(particles, ROI)
 
-N = length(particles);
-particles_resampled = zeros(N,4);
-particles_resampled(:,4) = 1/N;
+N = length(particles.x);
 
 % Calculate mean of roi segments
 num_segments = 10;
@@ -20,11 +18,7 @@ for s = 1 : num_segments
             point_index = point_index + 1;
         end
     end
-
-    % Median
-%     segments(s,1) = median(segment_points(:,1));
-%     segments(s,2) = median(segment_points(:,2));
-%     segments(s,3) = median(segment_points(:,3));
+    
     % Mitteln
     segments(s,1) = mean(segment_points(:,1));
     segments(s,2) = mean(segment_points(:,2));
@@ -41,24 +35,64 @@ end
 
 
 % Partikelfilter
-%%%%%%%%%%%%% TODO Distanzen, die Null bzw. isnan sind von den
-%%%%%%%%%%%%% intersectionPts nochmal ueberlegen, wie man das macht...
-L = 0.2;
 
-%     % Bewertung
+% Ab 1 Meter schlechte Gewichtung
+L = 0.2;
+distance_names = {'d1'; 'd2'; 'd3'; 'd4'; 'd5'; 'd6'; 'd7'; 'd8'; 'd9'; 'd10'};
+
 for i=1:N
     for s = 1 : num_segments
-        v(s,1) = particles.(distances{s})(i) - segments(s,4);
-        
-        weights(s,1) = exp(-0.5*v(s,1)'*inv(L)*v(s,1));
+        % Differenzen zwischen Particel Abstand und Kinect Mittelwert
+        % berechnen
+        v(s,1) = abs(particles.distances(i).(distance_names{s}) - segments(s,4));
+
     end
-    particles.weights(i) = sum(weights) + 0.01/N;
-    
+    % Medianfilter (per Hand) filtert die schlechtesten (größten) Werte
+    % heraus
+    v_sort = sort(v);
+    v_med = v_sort(1:8,1);
+    v_mean = mean(v_med);
+    v_all(i) = v_mean;
+    particles.weights(i) = exp(-0.5*v_mean'*inv(L)*v_mean) + 0.1/N;
+  
 end
 
 sum_weight = sum(particles.weights);
-
 for i=1:N
-    particles.weights(i) = particles.weights(i) / sum_weight;
+    particles.weights(i) = (particles.weights(i) / sum_weight);
 end
+
+random_numbers = rand(N,1);
+
+for i = 1 : N
+    
+    weight_threshold = 0;
+    
+    for u = 1 : N
+        
+        weight_threshold = weight_threshold + particles.weights(u);
+        if(random_numbers(i) < weight_threshold)
+            resampled_struct.x(i,1) = particles.x(u);
+            resampled_struct.y(i,1) = particles.y(u);
+            resampled_struct.z(i,1) = particles.z(u);
+            resampled_struct.orientation(i,1) = particles.orientation(u);
+            resampled_struct.weights(i,1) = 1/N;
+            break;
+        end
+        
+    end
+    
+end
+
+
+
+% estimate(t,:) = [mean(particles(:,1)) mean(particles(:,2))];
+
+plot(v_all,particles.weights, '.')
+ylabel('Gewichtung');
+xlabel('Differenzen');
+
+
+
+
 end

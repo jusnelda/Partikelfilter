@@ -265,3 +265,5 @@ y = get(H,'ydata');
 %     end
 % end
 
+%% 20181106
+        temp_dists = (cell2mat(struct2cell(part_struct.distances(i)))).^2;

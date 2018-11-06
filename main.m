@@ -8,8 +8,8 @@ tic
 % filepath = fullfile('C:\Users\Sysadmin\Documents\Partikelfilter Navi App\Partikelfilter/GPS_all_black.png');
 %filepath = fullfile('D:\Partikelfilter\Partikelfilter/GPS_all_filled.png');
 % Jussi stick
-%filepath = fullfile('/Volumes/NO NAME/7.Semester/Partikelfilter20181023/Partikelfilter/GPS_all_black.png');
-filepath = fullfile('D:\Partikelfilter\Partikelfilter/Bilder/GPS_all_black.png');
+filepath = fullfile('E:\7.Semester\Partikelfilter/Bilder/GPS_all_black.png');
+%filepath = fullfile('D:\Partikelfilter\Partikelfilter/Bilder/GPS_all_black.png');
 load('walls_black')
 image = imread(filepath);
 
@@ -37,7 +37,7 @@ maxrange = 6 + q_range;
 %angles = [pi/16,pi/8,pi/4,pi/3,-pi/3,-pi/4,-pi/8,-pi/16];
 % angles = -pi/6:0.1047:pi/6;
 angles = [-0.5236,-0.4189,-0.3142,-0.2095,-0.1048,0.1046,0.2093,0.3140,0.4187,0.5234];
-angles = angles + q_angle;
+%angles = angles + q_angle;
 %robotPose = [207,138,pi/2];
 for k = 1 : length(robotPoses)
     intsectionPts = rayIntersection(occ_grid,robotPoses(k,:),angles,maxrange,0.7);
@@ -53,7 +53,7 @@ for k = 1 : length(robotPoses)
         else
             rays = plot([robotPoses(k,1),intsectionPts(i,1)],...
                 [robotPoses(k,2),intsectionPts(i,2)],'-b'); % Plot intersecting rays
-        end        
+        end
     end
     grid on;
     legend('Collision Points','Robot Position','No Ray','Rays','Location','SouthEast')
@@ -100,41 +100,62 @@ y = particles(:,3);
 particles(:,2) = y;
 particles(:,3) = z;
 
-% Plot x und z 
+% Plot x und z
 plot(particles(:,1), particles(:,3), '.r')
-
 
 part_struct.x = particles(:,1);
 part_struct.y = particles(:,2);
 part_struct.z = particles(:,3);
 part_struct.orientation = particles(:,4);
 part_struct.weights = particles(:,5);
-% Partikel berechnen ihre Distanz zur Wand
-distances = {'d1'; 'd2'; 'd3'; 'd4'; 'd5'; 'd6'; 'd7'; 'd8'; 'd9'; 'd10'};
-for k = 1 : N
 
-    robot_pose = [part_struct.x(k), part_struct.z(k), part_struct.orientation(k)];
-    intersectionPts = rayIntersection(occ_grid,robot_pose,angles,maxrange,0.7);
-    for i = 1 : length(intersectionPts)
-        if isnan(intsectionPts(i,1))
-            % Abstand zur Wand ist immer gleich, deswegen ist die Hoehe (y) egal
-            part_struct.(distances{i}) = sqrt( (intersectionPts(i,1) - part_struct.x(k) )^2 ...
-                                             + (intersectionPts(i,2) - part_struct.z(k) )^2 );
-        else
-            part_struct.(distances{i}) = 0;
+
+% Hauptschleife
+% TODO Kinect Daten simulieren, sodass Partikelfilter durchlaufen kann,
+% dazu die robotPoses von oben verwenden und so umbauen, dass sie in die
+% Partikelfilter Funktion reinpassen.
+for f = 1 : 20
+    distance_names = {'d1'; 'd2'; 'd3'; 'd4'; 'd5'; 'd6'; 'd7'; 'd8'; 'd9'; 'd10'};
+    for t = 1 : N
+        for d = 1 : length(distance_names)
+            part_struct.distances(t).(distance_names{d}) = 0;
+        end
+    end
+    
+    % Partikel berechnen ihre Distanz zur Wand
+    for k = 1 : N
+        
+        robot_pose = [part_struct.x(k), part_struct.z(k), part_struct.orientation(k)];
+        intersectionPts = rayIntersection(occ_grid,robot_pose,angles,maxrange,0.7);
+        for i = 1 : length(intersectionPts)
+            if isnan(intersectionPts(i,1))
+                % Abstand zur Wand ist immer gleich, deswegen ist die Hoehe (y) egal
+                part_struct.distances(k).(distance_names{i}) = 0;
+                
+            else
+                part_struct.distances(k).(distance_names{i}) = sqrt( (intersectionPts(i,1) - part_struct.x(k) )^2 ...
+                    + (intersectionPts(i,2) - part_struct.z(k) )^2 );
+            end
+        end
+    end
+    
+    %save('part_struct.mat', 'part_struct');
+    
+    toc
+    % Partikelfilter
+    load('ROI');
+    %load('part_struct');
+    resampled_particles = partikelfilter(part_struct, ROI);
+    for i = 1 : N
+        single_particle = resampled_particles(i);
+        part_struct(i) = motionModel(single_particle);
+        out_of_map = checkOccupancy(occ_grid, [part_struct.x(i), part_struct.z(i)]);
+        while out_of_map
+            temp_part = gen_random_particle([175,165], [24,200]);
+            part_struct.x(i) = temp_part(1);
+            part_struct.z(i) = temp_part(2);
+            part_struct.orientation = rand(1) * pi/18;
+            out_of_map = checkOccupancy(occ_grid, temp_part);
         end
     end
 end
-
-toc
-%% Partikelfilter
-load('ROI');
-partikelfilter(part_struct, ROI);
-
-
-
-
-
-
-
-
