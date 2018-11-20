@@ -79,9 +79,11 @@ save('data.mat', 'data');
 clc
 close all
 figure(4)
-grid = load('Vorgabe.txt');
-plot(grid(:,1), grid(:,2), '.k');
+map = load('Vorgabe.txt');
+plot(map(:,1), map(:,2), '.k');
+axis equal
 tic
+%%
 % schnitt1 = load('SS2017_BA_Stuber_SchnitteGang_Betr_Czaja/Schnitt1.txt');
 % schnitt2 = load('SS2017_BA_Stuber_SchnitteGang_Betr_Czaja/Schnitt2.txt');
 % schnitt3 = load('SS2017_BA_Stuber_SchnitteGang_Betr_Czaja/Schnitt3.txt');
