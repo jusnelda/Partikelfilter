@@ -10,13 +10,15 @@ for i = 1 : 20
     if i == 1
         points(1,1) =  start(1);
         points(1,2) = start(2);
+        points(1,3) = alpha;
     else
         points(i,1) = points(i-1,1) + motion * cos(alpha);
         points(i,2) = points(i-1,2) + motion * sin(alpha);
+        points(i,3) = alpha;
     end
-    
+%     alpha = alpha + 0.1;
 end
-points(:,3) = alpha;
+% points(:,3) = alpha;
 
 
 end

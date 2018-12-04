@@ -1,0 +1,95 @@
+%% INIT
+
+clear all;
+close all;
+clc
+imaqreset
+
+% Data Aquisition (i)
+colorDevice = imaq.VideoDevice('kinect',1);
+depthDevice = imaq.VideoDevice('kinect',2);
+
+step(colorDevice);
+step(depthDevice);
+% colorImage = step(colorDevice);
+% depthImage = step(depthDevice);
+% ptCloud = pcfromkinect(depthDevice,depthImage,colorImage);
+
+
+t0 = clock;
+file_index = 1;
+while etime(clock, t0) < 30
+   if (mod(etime(clock,t0),3) == 0) % alle 3 sekunden
+       disp(['Getting new frame: ', num2str(etime(clock,t0))]);
+       tic
+       colorImage = step(colorDevice);
+       depthImage = step(depthDevice);
+       ptCloud = pcfromkinect(depthDevice,depthImage,colorImage);
+       str = ['scene', num2str(etime(clock,t0)), '.ply'];
+       filename(file_index) = {str};
+       pcwrite(ptCloud, str, 'Encoding','ascii');
+       file_index = file_index + 1;
+       toc
+   end
+end
+
+% Kamera Objekt wieder freigeben
+release(colorDevice);
+release(depthDevice);
+
+% Pointcloud einlesen und bearbeiten
+for i = 1 : length(filename)
+   pc = pcread(cell2mat(filename(i)));
+   figure(i)
+   pcshow(pc);
+end
+
+
+% pc = pcread('scene.ply');
+square = 0.1; % ROI mit 20cm
+roi = zeros(1,3);
+index = 1;
+for i = 1 : length(filename)
+    pc = pcread(cell2mat(filename(i)));
+    % Alle Punkte in der Pointcloud abspeichern und 20 quadratcentimeter grosse ROI speichern
+    for i = 1 : pc.Count
+        point(i,:) = pc.Location(i,:);
+        % Nach Y-Hoehe filtern
+        if (point(i,2) >= (-square) && point(i,2) <= square) %&& (point(i,1) >= (-square) && point(i,1) <= square)
+            roi(index,:) = pc.Location(i,:);
+            index = index + 1;
+        end
+        % Polarkoordinaten berechnen fuer roi
+        for i = 1 : length(roi)
+            % Strecke von (0,0,0) 3D
+            roi(i,4) = sqrt( (roi(i,1))^2 + (roi(i,2))^2 + (roi(i,3))^2 );
+            % Winkel zu (0,0) 2D
+            roi(i,5) = atan2( roi(i,3),roi(i,1) );
+        end
+        ROI = struct('time', datestr(now), 'x', roi(:,1), 'y', roi(:,2), 'z', roi(:,3), 'dist', roi(:,4), 'angle', roi(:,5));
+        save(['ROI', num2str(i), '.mat'], 'ROI');
+        
+    end % for pointcloud
+end % for length filename
+
+
+
+% Pointcloud anzeigen
+figure(1)
+pcshow(pc);
+% Profillinie
+figure(2)
+subplot(2,1,1)
+plot(point(:,1), point(:,3),'.')
+title('Profillinie gesamt')
+grid on
+subplot(2,1,2)
+% Plot Draufsicht mit x und z
+plot(roi(:,1), roi(:,3),'.r')
+title('Profillinie ROI 20cm^2')
+grid on
+
+
+figure(3)
+polarplot(roi(:,5), roi(:,4))
+% ROI als .mat abspeichern mit Zeitstempel

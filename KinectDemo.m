@@ -41,7 +41,7 @@ release(depthDevice);
 %Pointcloud als ACSII PLY Datei abspeichern
 pcwrite(ptCloud, 'scene.ply','Encoding','ascii');
 
-%% Pointcloud einlesen und bearbeiten
+% Pointcloud einlesen und bearbeiten
 
 pc = pcread('scene.ply');
 square = 0.1; % ROI mit 20cm
