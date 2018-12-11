@@ -2,7 +2,7 @@
 clc;
 close all;
 clear all;
-format longg;
+format long g;
 tic
 % Import Image
 %filepath = fullfile('\\R311-IMAC25\WS2017_PrjNav_Data\3_Gruppe\HM_Karlstrasse_F8100_OG3_mod.png');
@@ -23,8 +23,8 @@ grayimage = rgb2gray(image);
 bwimage = grayimage < 245;
 
 % Use black and white image as matrix input for binary occupancy grid
-occ_grid = robotics.OccupancyGrid(bwimage,20);
-bin_occ_grid = robotics.BinaryOccupancyGrid(bwimage,4);
+occ_grid = robotics.OccupancyGrid(bwimage,25); % 26 Pixel == 1 Meter
+bin_occ_grid = robotics.BinaryOccupancyGrid(bwimage,25); % 6,5 Pixel  == 0.25 Meter 
 max_x_lim = occ_grid.XWorldLimits;
 max_y_lim = occ_grid.YWorldLimits;
 %% Save all walls(black points) to as mat file walls.mat
@@ -63,17 +63,18 @@ show(occ_grid);
 % Simulate kinect data
 q_range = randn(1) * 0.4;
 q_angle = randn(1) * 0.2;
-fov_deg = [-30, -25, -20, -10, -5, 0, 5, 10, 23, 30];
+% fov_deg = [-30, -25, -20, -10, -5, 0, 5, 10, 23, 30];
+% fov_deg = [60, 65, 70, 80, 85, 90, 95, 100, 113, 120];
+fov_deg = [30, 35, 40, 50, 55, 60, 65, 70, 83, 90];
 fov = deg2rad(fov_deg);
 %fov = [-0.5236,-0.4189,-0.3142,-0.2095,-0.1048,0.1046,0.2093,0.3140,0.4187,0.5234]; % +q_angle
 % fov = fov + q_angle;
-maxrange = 5 + q_range;
+maxrange = 3 + q_range;
 
 % Init Partikel
 N = 500; % Anzahl Partikel
 particles = zeros(N,5);
-% TODO - y = Hoehe der Kinect ueber dem Boden
-% particles(:,3) = Hoehe
+
 particles(:,5) = 1/N;
 % Partikel generieren und pruefen ob sie einen validen Punkt auf der Karte
 % haben
@@ -84,6 +85,8 @@ for i = 1 : N
         particles(i,1:2) = gen_random_particle(max_x_lim, max_y_lim);
         out_of_map = checkOccupancy(occ_grid, particles(i,1:2));
     end
+% TODO - y = Hoehe der Kinect ueber dem Boden
+particles(i,3) = -0.9 - (-0.9+0.3)*rand(1);
 particles(i,4) = -pi + (pi+pi)*rand(1);
 end
 % Switch Spalte 2 mit 3 => X | Y | Z
@@ -104,8 +107,10 @@ part_struct.z = particles(:,3);
 part_struct.orientation = particles(:,4);
 part_struct.weights = particles(:,5);
 fieldnames = {'x'; 'y'; 'z'; 'orientation'; 'weights'};
-%
-for r = 1:20
+%------------------------------------------------------------------
+%------------------------------------------------------------------
+% NICHT DYNAMISCH!!!!!!!
+for r = 1:38
     ROIs(r) = {load(['ROI', num2str(r)])};
 end
 %%

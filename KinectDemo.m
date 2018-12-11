@@ -93,6 +93,7 @@ figure(3)
 plot(vorgabe(:,1), vorgabe(:,2), '.k');
 title('Grundriss Vorgabe')
 
+%%
 % GPS
 figure(4)
 plot(GPS.GPS1(:,1),GPS.GPS1(:,2),'.k');

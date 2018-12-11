@@ -37,18 +37,34 @@ end
 release(colorDevice);
 release(depthDevice);
 
-%% Pointcloud einlesen und bearbeiten
-for i = 1 : length(filename)
-   pc = pcread(cell2mat(filename(i)));
-   figure(i)
-   pcshow(pc);
+%% Kinect-Live-Daten vom 11.12.2018
+% Nehmen Daten von der unteren rechten Wand bis zur oberen rechten Wand auf
+% und den Knick der nach links verläuft, für die Eindeutigkeit
+% Format der Dateien sind .ply Dateien
+clear all;
+close all;
+clc
+
+for i=1:38
+    str = ['pc', num2str(i), '.ply'];
+    filename(i) = {str};
 end
 
-%%
-square = 0.1; % ROI mit 20cm
+% Pointcloud einlesen und bearbeiten
+for i = 1 : length(filename)
+   pc = pcread(cell2mat(filename(i)));
+%    figure(i)
+%    pcshow(pc);
+end
+
+%
+square = 0.1;
+min_height = -0.9;
+max_height = min_height + 0.6;
 roi = zeros(1,3);
 index = 1;
 tic
+disp(['startTimer: ', datestr(now)])
 for i = 1 : length(filename)
     pc = pcread(cell2mat(filename(i)));
     roi = zeros(1,3);
@@ -57,7 +73,7 @@ for i = 1 : length(filename)
     for k = 1 : pc.Count
         point(k,:) = pc.Location(k,:);
         % Nach Y-Hoehe filtern
-        if (point(k,2) >= (-square) && point(k,2) <= square) %&& (point(i,1) >= (-square) && point(i,1) <= square)
+        if (point(k,2) >= (min_height) && point(k,2) <= max_height) %&& (point(i,1) >= (-square) && point(i,1) <= square)
             roi(index,:) = pc.Location(k,:);
             index = index + 1;
         end
@@ -72,6 +88,8 @@ for i = 1 : length(filename)
     % ROI als .mat abspeichern mit Zeitstempel
     ROI = struct('time', datestr(now), 'x', roi(:,1), 'y', roi(:,2), 'z', roi(:,3), 'dist', roi(:,4), 'angle', roi(:,5));
     save(['ROI', num2str(i), '.mat'], 'ROI');
+%     figure(i)
+%     polarplot(roi(:,5), roi(:,4))
     
 end % for length filename
 toc
