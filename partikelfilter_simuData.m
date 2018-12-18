@@ -5,11 +5,11 @@ N = length(particles.x);
 % Solange wir simulierte Daten verwenden brauche wir das nicht
 % Calculate mean of roi segments
 num_segments = 10;
-min_angle = min(ROI.angle);
-max_angle = max(ROI.angle);
-step = (max_angle - min_angle) / num_segments;
-point_index = 1;
-segment_points = [ROI.x(1), ROI.y(1), ROI.z(1), ROI.dist(1), ROI.angle(1)];
+% min_angle = min(ROI.angle);
+% max_angle = max(ROI.angle);
+% step = (max_angle - min_angle) / num_segments;
+% point_index = 1;
+% segment_points = [ROI.x(1), ROI.y(1), ROI.z(1), ROI.dist(1), ROI.angle(1)];
 
 % Bei simulierten Daten das verwenden
 segments(:,1) = ROI(:,1);

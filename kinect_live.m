@@ -59,25 +59,30 @@ end
 
 %
 square = 0.1;
-min_height = -0.9;
-max_height = min_height + 0.6;
+min_height = -0.25;
+max_height = 0.58; %min_height + 0.65;
 roi = zeros(1,3);
 index = 1;
 tic
 disp(['startTimer: ', datestr(now)])
 for i = 1 : length(filename)
     pc = pcread(cell2mat(filename(i)));
+    pc_filtered = pc;
     roi = zeros(1,3);
     index = 1;
     % Alle Punkte in der Pointcloud abspeichern und 20 quadratcentimeter grosse ROI speichern
     for k = 1 : pc.Count
         point(k,:) = pc.Location(k,:);
         % Nach Y-Hoehe filtern
-        if (point(k,2) >= (min_height) && point(k,2) <= max_height) %&& (point(i,1) >= (-square) && point(i,1) <= square)
+        if (point(k,2) <= (max_height)) %||point(k,2) >= max_height  %&& (point(i,1) >= (-square) && point(i,1) <= square)
             roi(index,:) = pc.Location(k,:);
+%             pc_filtered.Location(k,2) = 0;
+
             index = index + 1;
         end
     end % for pointcloud
+    
+%      pcshow(pc);
     % Polarkoordinaten berechnen fuer roi
     for n = 1 : length(roi)
         % Strecke von (0,0,0) 3D
@@ -88,8 +93,9 @@ for i = 1 : length(filename)
     % ROI als .mat abspeichern mit Zeitstempel
     ROI = struct('time', datestr(now), 'x', roi(:,1), 'y', roi(:,2), 'z', roi(:,3), 'dist', roi(:,4), 'angle', roi(:,5));
     save(['ROI', num2str(i), '.mat'], 'ROI');
-%     figure(i)
-%     polarplot(roi(:,5), roi(:,4))
+    figure(i)
+    polarplot(roi(:,5), roi(:,4), '.')
+    disp(num2str(i));
     
 end % for length filename
 toc

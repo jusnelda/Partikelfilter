@@ -53,8 +53,8 @@ show(occ_grid);
 % INITS fuer Hauptschleife
 % Simulate robot poses
 [x_s, y_s] = ginput(2);
-% start= [x_s(1), y_s(1)];
-% fin= [x_s(2), y_s(2)];
+start= [x_s(1), y_s(1)];
+fin= [x_s(2), y_s(2)];
 % For faster testing - predefined start and end
 % start = [28.8462450592885,6.90148221343874];
 % fin = [31.3693675889328,13.5803359683795];
@@ -104,22 +104,17 @@ part_struct.z = particles(:,3);
 part_struct.orientation = particles(:,4);
 part_struct.weights = particles(:,5);
 fieldnames = {'x'; 'y'; 'z'; 'orientation'; 'weights'};
-%
-for r = 1:20
-    ROIs(r) = {load(['ROI', num2str(r)])};
-end
-%%
 
 % Hauptschleife
 
-for h = 1 : length(ROIs) % length(robotPoses) % Hauptschleife (spaeter while true)
+for h = 1 : length(robotPoses) % Hauptschleife
     
     % Ersten Partikel zum testen immer auf aktuelle Pose setzen
 %     part_struct.x(1) = robotPoses(h,1); 
 %     part_struct.z(1) = robotPoses(h,2);
     % Simulierte Kinect Daten generieren (intsectionPts der robotPoses mit
     % der Wand)
-%     [kinect_data, plots] = data_simu_kinect(occ_grid,robotPoses(h,:),fov,maxrange); % dummy data
+    [kinect_data, plots] = data_simu_kinect(occ_grid,robotPoses(h,:),fov,maxrange); % dummy data
     % Datenstruktur zum abspeichern der 10 vergleichbaren Distanzen
     distance_names = {'d1'; 'd2'; 'd3'; 'd4'; 'd5'; 'd6'; 'd7'; 'd8'; 'd9'; 'd10'};
     for t = 1 : N
@@ -129,8 +124,7 @@ for h = 1 : length(ROIs) % length(robotPoses) % Hauptschleife (spaeter while tru
     end % for-loop benennung der distances Spalte im part_struct
     
     % Partikel berechnen ihre Distanz zur Wand
-    for k = 1 : N
-        
+    for k = 1 : N      
         part_pose = [part_struct.x(k), part_struct.z(k), part_struct.orientation(k)];
         intersectionPts = rayIntersection(occ_grid,part_pose,fov,maxrange,0.7);
         
@@ -146,15 +140,10 @@ for h = 1 : length(ROIs) % length(robotPoses) % Hauptschleife (spaeter while tru
         end % for-loop ueber alle intersectionPts
     end % for-loop ueber alle Partikel
     
-    % Partikelfilter
-    % ROI = load('ROI');
-   
-    
-    resampled_particles = partikelfilter(part_struct, ROIs{1, h}.ROI);
-
-    % resampled_particles = partikelfilter(part_struct, kinect_data);
+    %%%%%%%%%%%%%%%%% Partikelfilter %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    resampled_particles = partikelfilter_simuData(part_struct, kinect_data);
     part_struct = resampled_particles;
-%     part_struct.x(1) = robotPoses(h,1); part_struct.z(1) = robotPoses(h,2);
+    part_struct.x(1) = robotPoses(h,1); part_struct.z(1) = robotPoses(h,2);
     for i = 1 : N
         single_particle = [part_struct.x(i), part_struct.z(i), part_struct.orientation(i)];
         % Motion Model

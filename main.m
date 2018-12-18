@@ -50,29 +50,21 @@ set(gcf, 'units', 'normalized', 'outerposition',[0 0 0.5 0.5])
 hold on
 show(occ_grid);
 
-% INITS fuer Hauptschleife
-% Simulate robot poses
-% [x_s, y_s] = ginput(2);
-% start= [x_s(1), y_s(1)];
-% fin= [x_s(2), y_s(2)];
-% For faster testing - predefined start and end
-% start = [28.8462450592885,6.90148221343874];
-% fin = [31.3693675889328,13.5803359683795];
-% robotPoses = data_simu(start,fin);
-
 % Simulate kinect data
-q_range = randn(1) * 0.4;
-q_angle = randn(1) * 0.2;
+q_range = randn(1) * 0.2;
+% q_angle = randn(1) * 0.2;
 % fov_deg = [-30, -25, -20, -10, -5, 0, 5, 10, 23, 30];
-% fov_deg = [60, 65, 70, 80, 85, 90, 95, 100, 113, 120];
-fov_deg = [30, 35, 40, 50, 55, 60, 65, 70, 83, 90];
+% fov_deg = [60, 65, 70, 80, 85, 90, 95, 100, 113, 120]
+fov_deg = [120, 113, 100, 95, 85, 90, 80, 70, 65, 60] * -1;
+% fov_deg = flipud(fov_deg)
+% fov_deg = [30, 35, 40, 50, 55, 60, 65, 70, 83, 90];
 fov = deg2rad(fov_deg);
 %fov = [-0.5236,-0.4189,-0.3142,-0.2095,-0.1048,0.1046,0.2093,0.3140,0.4187,0.5234]; % +q_angle
 % fov = fov + q_angle;
 maxrange = 3 + q_range;
 
 % Init Partikel
-N = 500; % Anzahl Partikel
+N = 1000; % Anzahl Partikel
 particles = zeros(N,5);
 
 particles(:,5) = 1/N;
@@ -85,8 +77,7 @@ for i = 1 : N
         particles(i,1:2) = gen_random_particle(max_x_lim, max_y_lim);
         out_of_map = checkOccupancy(occ_grid, particles(i,1:2));
     end
-% TODO - y = Hoehe der Kinect ueber dem Boden
-particles(i,3) = -0.9 - (-0.9+0.3)*rand(1);
+particles(i,3) = -1.4 + (1.4+0.58)*rand(1);
 particles(i,4) = -pi + (pi+pi)*rand(1);
 end
 % Switch Spalte 2 mit 3 => X | Y | Z
@@ -107,24 +98,59 @@ part_struct.z = particles(:,3);
 part_struct.orientation = particles(:,4);
 part_struct.weights = particles(:,5);
 fieldnames = {'x'; 'y'; 'z'; 'orientation'; 'weights'};
+%%
 %------------------------------------------------------------------
 %------------------------------------------------------------------
 % NICHT DYNAMISCH!!!!!!!
-for r = 1:38
-    ROIs(r) = {load(['ROI', num2str(r)])};
-end
+% tic
+% for r = 1:38
+%     ROIs(r) = {load(['ROI', num2str(r)])};
+%     % Calculate mean of roi segments
+%     num_segments = 10;
+%     min_angle = min(ROIs{1,r}.ROI.angle);
+%     max_angle = max(ROIs{1,r}.ROI.angle);
+%     step = (max_angle - min_angle) / num_segments;
+%     point_index = 1;
+%     segment_points = [ROIs{1,r}.ROI.x(1),ROIs{1,r}.ROI.y(1), ROIs{1,r}.ROI.z(1), ...
+%                       ROIs{1,r}.ROI.dist(1), ROIs{1,r}.ROI.angle(1)];
+%     
+%     for s = 1 : num_segments
+%         
+%         for i = 1 : length(ROIs{1,r}.ROI.x)
+%             if ROIs{1,r}.ROI.angle(i) < min_angle + step
+%                 segment_points(point_index,:) = [ROIs{1,r}.ROI.x(i), ROIs{1,r}.ROI.y(i), ...
+%                             ROIs{1,r}.ROI.z(i), ROIs{1,r}.ROI.dist(i), ROIs{1,r}.ROI.angle(i)];
+%                 point_index = point_index + 1;
+%             end
+%         end
+%         
+%         % Mitteln
+%         segments(s,1) = mean(segment_points(:,1));
+%         segments(s,2) = mean(segment_points(:,2));
+%         segments(s,3) = mean(segment_points(:,3));
+%         
+%         % Strecke von (0,0,0) 3D
+%         segments(s,4) = sqrt( (segments(s,1))^2 + (segments(s,2))^2 + (segments(s,3))^2 );
+%         % Winkel zu (0,0) 2D
+%         segments(s,5) = atan2( segments(s,3),segments(s,1) );
+%         point_index = 1;
+%         min_angle = min_angle + step;
+%         s =  s + 1;
+%     end
+%     ROIs{1,r}.segments = segments;
+%     r
+%     toc
+% end
+% save('ROIS', 'ROIs')
+
 %%
 
 % Hauptschleife
+tic
+load('ROIs')
+toc
+for h = 1 : length(ROIs)  % Hauptschleife
 
-for h = 1 : length(ROIs) % length(robotPoses) % Hauptschleife (spaeter while true)
-    
-    % Ersten Partikel zum testen immer auf aktuelle Pose setzen
-%     part_struct.x(1) = robotPoses(h,1); 
-%     part_struct.z(1) = robotPoses(h,2);
-    % Simulierte Kinect Daten generieren (intsectionPts der robotPoses mit
-    % der Wand)
-%     [kinect_data, plots] = data_simu_kinect(occ_grid,robotPoses(h,:),fov,maxrange); % dummy data
     % Datenstruktur zum abspeichern der 10 vergleichbaren Distanzen
     distance_names = {'d1'; 'd2'; 'd3'; 'd4'; 'd5'; 'd6'; 'd7'; 'd8'; 'd9'; 'd10'};
     for t = 1 : N
@@ -152,14 +178,9 @@ for h = 1 : length(ROIs) % length(robotPoses) % Hauptschleife (spaeter while tru
     end % for-loop ueber alle Partikel
     
     % Partikelfilter
-    % ROI = load('ROI');
-   
-    
-    resampled_particles = partikelfilter(part_struct, ROIs{1, h}.ROI);
+    resampled_particles = partikelfilter(part_struct, ROIs{1, h}.segments);
 
-    % resampled_particles = partikelfilter(part_struct, kinect_data);
     part_struct = resampled_particles;
-%     part_struct.x(1) = robotPoses(h,1); part_struct.z(1) = robotPoses(h,2);
     for i = 1 : N
         single_particle = [part_struct.x(i), part_struct.z(i), part_struct.orientation(i)];
         % Motion Model
@@ -181,8 +202,7 @@ for h = 1 : length(ROIs) % length(robotPoses) % Hauptschleife (spaeter while tru
     delete(particle_plot);
     particle_plot = plot(resampled_particles.x, resampled_particles.z, '.b');
     title({'Particlefilter', ['Iteration: ', num2str(h)], ['Particles: ', ...
-            num2str(N), ' | Range Noise: ', num2str(q_range), ' | Angle Noise: '...
-            num2str(q_angle)]});
+            num2str(N)]});
 %     legend([particle_plot, plots.intsections, plots.robot, plots.nonrays, ...
 %             plots.rays], {'Particles', 'Collision Points', 'Robot Pose', ...
 %             'Rays (No Collision)', 'Rays (Collison)'});
