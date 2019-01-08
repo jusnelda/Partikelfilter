@@ -71,13 +71,13 @@ fov_deg = [-30, -25, -20, -10, -5, 0, 5, 10, 23, 30];
 fov = deg2rad(fov_deg);
 %fov = [-0.5236,-0.4189,-0.3142,-0.2095,-0.1048,0.1046,0.2093,0.3140,0.4187,0.5234]; % +q_angle
 % fov = fov + q_angle;
-maxrange = 3 + q_range;
+maxrange = 5 + q_range;
 % maxrange korreliert offenbar mit Anzahl Partikel. Verringert man die
 % Range muss man die Anzahl der Partikel erhoehen. Z.B. 3 maxrange = 5000
 % Partikel, oder 5 maxrange = 500 Partikel
 
 % Init Partikel
-N = 5000; % Anzahl Partikel
+N = 500; % Anzahl Partikel
 particles = zeros(N,5);
 % TODO - y = Hoehe der Kinect ueber dem Boden
 % particles(:,3) = Hoehe

@@ -49,7 +49,7 @@ figure(1);
 set(gcf, 'units', 'normalized', 'outerposition',[0 0 0.5 0.5])
 hold on
 show(occ_grid);
-title({'Occupancy Grid', 'Skalierung: 26 Pixel ≙ 1 Meter'})
+title({'Occupancy Grid', 'Skalierung: 26 Pixel entspricht 1 Meter'})
 xlabel('X [Meter]')
 ylabel('Y [Meter]')
 legend off
@@ -65,10 +65,10 @@ fov_deg = [120, 113, 100, 95, 85, 90, 80, 70, 65, 60] * -1;
 fov = deg2rad(fov_deg);
 %fov = [-0.5236,-0.4189,-0.3142,-0.2095,-0.1048,0.1046,0.2093,0.3140,0.4187,0.5234]; % +q_angle
 % fov = fov + q_angle;
-maxrange = 3 + q_range;
+maxrange = 4 + q_range;
 
 % Init Partikel
-N = 1000; % Anzahl Partikel
+N = 2000; % Anzahl Partikel
 particles = zeros(N,5);
 
 particles(:,5) = 1/N;
@@ -81,7 +81,7 @@ for i = 1 : N
         particles(i,1:2) = gen_random_particle(max_x_lim, max_y_lim);
         out_of_map = checkOccupancy(occ_grid, particles(i,1:2));
     end
-particles(i,3) = -1.4 + (1.4+0.58)*rand(1);
+particles(i,3) = -1.7 + (1.7+0.8)*rand(1);
 particles(i,4) = -pi + (pi+pi)*rand(1);
 end
 % Switch Spalte 2 mit 3 => X | Y | Z
@@ -107,7 +107,7 @@ fieldnames = {'x'; 'y'; 'z'; 'orientation'; 'weights'};
 %------------------------------------------------------------------
 % NICHT DYNAMISCH!!!!!!!
 % tic
-% for r = 1:38
+% for r = 1:17
 %     ROIs(r) = {load(['ROI', num2str(r)])};
 %     % Calculate mean of roi segments
 %     num_segments = 10;

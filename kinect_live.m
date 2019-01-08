@@ -45,15 +45,15 @@ clear all;
 close all;
 clc
 
-for i=1:38
+for i=1:17
     str = ['pc', num2str(i), '.ply'];
     filename(i) = {str};
 end
 
-% Pointcloud einlesen und bearbeiten
+%% Pointcloud einlesen und bearbeiten
 for i = 1 : length(filename)
    pc = pcread(cell2mat(filename(i)));
-   figure(1)
+   figure(i)
    hold on
    title(['Bild #', num2str(i)]);
    p = pcshow(pc);
@@ -61,14 +61,14 @@ for i = 1 : length(filename)
    ylabel('Y');
    zlabel('Z');
    view(0, -80); 
-   pause(0.4);
-   delete(p);
+%    pause(0.4);
+%     delete(p);
 end
 
 %%
 square = 0.1;
-min_height = -0.25;
-max_height = 0.58; %min_height + 0.65;
+% max_height = 0.58; % Fuer wand rechts daten
+max_height = 0.8;
 roi = zeros(1,3);
 index = 1;
 tic
@@ -89,9 +89,8 @@ for i = 1 : length(filename)
             index = index + 1;
         end
     end % for pointcloud
-    
-%      pcshow(pc);
-    % Polarkoordinaten berechnen fuer roi
+     
+   % Polarkoordinaten berechnen fuer roi
     for n = 1 : length(roi)
         % Strecke von (0,0,0) 3D
         roi(n,4) = sqrt( (roi(n,1))^2 + (roi(n,2))^2 + (roi(n,3))^2 );
@@ -99,11 +98,13 @@ for i = 1 : length(filename)
         roi(n,5) = atan2( roi(n,3),roi(n,1) );
     end
     % ROI als .mat abspeichern mit Zeitstempel
-    ROI = struct('time', datestr(now), 'x', roi(:,1), 'y', roi(:,2), 'z', roi(:,3), 'dist', roi(:,4), 'angle', roi(:,5));
-    save(['ROI', num2str(i), '.mat'], 'ROI');
-    figure(i)
-    polarplot(roi(:,5), roi(:,4), '.')
+%     ROI = struct('time', datestr(now), 'x', roi(:,1), 'y', roi(:,2), 'z', roi(:,3), 'dist', roi(:,4), 'angle', roi(:,5));
+%     save(['ROI', num2str(i), '.mat'], 'ROI');
+    figure(2)
+    pp = polarplot(roi(:,5), roi(:,4), '.');
     disp(num2str(i));
+    pause(0.02);
+    delete(pp);
     
 end % for length filename
 toc
