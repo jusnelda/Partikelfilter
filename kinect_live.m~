@@ -60,8 +60,8 @@ for i = 1 : length(filename)
    xlabel('X');
    ylabel('Y');
    zlabel('Z');
-   view(0, -80); 
-   pause(0.4);
+   view(5, -60); 
+   pause(0.);
    delete(p);
 end
 

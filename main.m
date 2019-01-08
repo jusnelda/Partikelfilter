@@ -49,6 +49,10 @@ figure(1);
 set(gcf, 'units', 'normalized', 'outerposition',[0 0 0.5 0.5])
 hold on
 show(occ_grid);
+title({'Occupancy Grid', 'Skalierung: 26 Pixel ≙ 1 Meter'})
+xlabel('X [Meter]')
+ylabel('Y [Meter]')
+legend off
 
 % Simulate kinect data
 q_range = randn(1) * 0.2;

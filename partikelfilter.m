@@ -20,7 +20,7 @@ for i=1:N
         
     end
     particles.weights(i) = particles.weights(i) / num_segments;
-    % Medianfilter (per Hand) filtert die schlechtesten (gr��ten) Werte
+    % Medianfilter (per Hand) filtert die schlechtesten (groessten) Werte
     % heraus
     v_sort = sort(v);
     v_med = v_sort(1:8,1);
