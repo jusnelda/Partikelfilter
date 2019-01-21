@@ -66,7 +66,7 @@ robotPoses = data_simu(start,fin);
 % Simulate kinect data
 q_range = randn(1) * 0.4;
 q_angle = randn(1) * 0.2;
-fov_deg = [-30, -25, -20, -10, -5, 0, 5, 10, 23, 30];
+fov_deg = [-30, -25, -20, -10, -5, 0, 5, 10, 23, 30] * -1;
 %fov_deg = [120, 113, 100, 95, 85, 90, 80, 70, 65, 60] * -1;
 fov = deg2rad(fov_deg);
 %fov = [-0.5236,-0.4189,-0.3142,-0.2095,-0.1048,0.1046,0.2093,0.3140,0.4187,0.5234]; % +q_angle
@@ -170,7 +170,7 @@ for h = 1 : length(robotPoses) % Hauptschleife
     end
     figure(1)
     delete(particle_plot);
-    particle_plot = plot(resampled_particles.x, resampled_particles.z, '.b');
+    particle_plot = plot(resampled_particles.x, resampled_particles.z, '.');
     title({'Partikelfilter', ['Iteration: ', num2str(h)], ['Partikel: ', ...
             num2str(N)]});
     legend([particle_plot, plots.intsections, plots.robot, plots.nonrays, ...
@@ -179,5 +179,8 @@ for h = 1 : length(robotPoses) % Hauptschleife
 
     toc
 end % Hauptschleife
+delete(particle_plot)
+legend off
+title({'Partikelfilter', 'Iteration 20'})
 disp('DONE')
 toc
